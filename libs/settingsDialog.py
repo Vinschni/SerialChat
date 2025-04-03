@@ -1,10 +1,12 @@
-import ConfigParser
+import configparser
 import os
-from PySide.QtGui import QDialog, QDialogButtonBox, QComboBox, QCheckBox, QLineEdit, QPushButton, QIcon, QHBoxLayout, \
-    QWidget, QFormLayout, QFileDialog, QMessageBox
+from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QComboBox, QCheckBox, QLineEdit,
+                             QPushButton, QFileDialog, QMessageBox, QHBoxLayout, QWidget, QFormLayout)
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 from Crypto.Hash import MD5
 
-import libserial
+from libs.libserial import InitApp
 import datetime
 
 serial_speeds = ["300","600","1200","2400","4800","9600","14400","19200","38400","56000","57600","115200"]
@@ -15,58 +17,58 @@ flow_control_values = ["None","XON/XOFF","RTS/CTS"]
 
 icons_folder = "resources/icons/"
 
-settings_parser_1 = ConfigParser.ConfigParser()
+settings_parser_1 = configparser.ConfigParser()
 settings_parser_1.read('config/settings.ini')
 lang = settings_parser_1.get("default", "lang")
 
-language = ConfigParser.ConfigParser()
+language = configparser.ConfigParser()
 language.read("resources/languages/"+lang+".ini")
 
-SERIAL_CHAT_SETTINGS_TITLE= language.get(lang,"SERIAL_CHAT_SETTINGS_TITLE").decode('utf-8')
-CONNECT = language.get(lang,"CONNECT" ).decode('utf-8')
-CANCEL = language.get(lang,"CANCEL" ).decode('utf-8')
-FORMLAYOUT_SERIAL_TITLE= language.get(lang,"FORMLAYOUT_SERIAL_TITLE" ).decode('utf-8')
-FORMLAYOUT_PROFILE_TITLE= language.get(lang,"FORMLAYOUT_PROFILE_TITLE" ).decode('utf-8')   
-FORMLAYOUT_CUSTOM_SERIAL_SETTINGS_TITLE= language.get(lang,"FORMLAYOUT_CUSTOM_SERIAL_SETTINGS_TITLE" ).decode('utf-8')
-FORMLAYOUT_INTERVAL_TIME_TITLE= language.get(lang,"FORMLAYOUT_INTERVAL_TIME_TITLE" ).decode('utf-8')
-FORMLAYOUT_SERIAL_SPEED_TITLE= language.get(lang,"FORMLAYOUT_SERIAL_SPEED_TITLE" ).decode('utf-8')
-FORMLAYOUT_DATA_BITS_TITLE= language.get(lang,"FORMLAYOUT_DATA_BITS_TITLE" ).decode('utf-8')
-FORMLAYOUT_STOP_BITS_TITLE= language.get(lang,"FORMLAYOUT_STOP_BITS_TITLE" ).decode('utf-8')
-FORMLAYOUT_PARITY_TITLE= language.get(lang,"FORMLAYOUT_PARITY_TITLE" ).decode('utf-8')
-FORMLAYOUT_FLOWCONTROL_TITLE= language.get(lang,"FORMLAYOUT_FLOWCONTROL_TITLE" ).decode('utf-8')
-FORMLAYOUT_ENABLE_ACP127_TITLE= language.get(lang,"FORMLAYOUT_ENABLE_ACP127_TITLE").decode('utf-8')
-FORMLAYOUT_ENABLE_ENCRYPTION_TITLE = language.get(lang,"FORMLAYOUT_ENABLE_ENCRYPTION_TITLE").decode('utf-8')
-FORMLAYOUT_ENCRYPTION_KEY_TITLE = language.get(lang,"FORMLAYOUT_ENCRYPTION_KEY_TITLE").decode('utf-8')
-FORMLAYOUT_NICKNAME_TITLE= language.get(lang,"FORMLAYOUT_NICKNAME_TITLE" ).decode('utf-8')
-FORMLAYOUT_SAVE_FOLDER_FILE_TITLE= language.get(lang,"FORMLAYOUT_SAVE_FOLDER_FILE_TITLE" ).decode('utf-8')
-ERROR_NO_DIR_MESSAGE = language.get(lang,"ERROR_NO_DIR_MESSAGE").decode('utf-8')
-ERROR_NO_DIR_TITLE =  language.get(lang,"ERROR_NO_DIR_TITLE").decode('utf-8')
-ERROR_NO_INT_MESSAGE = language.get(lang,"ERROR_NO_INT_MESSAGE").decode('utf-8')
-ERROR_NO_INT_TITLE = language.get(lang,"ERROR_NO_INT_TITLE").decode('utf-8')
-MSG_SERIAL_INT_STARTED= language.get(lang,"MSG_SERIAL_INT_STARTED").decode('utf-8')
-ERROR_INTERFACE_TITLE = language.get(lang,"ERROR_INTERFACE_TITLE").decode('utf-8')
-FILEBROWSER_SAVE_FOLDER_TITLE = language.get(lang,"FILEBROWSER_SAVE_FOLDER_TITLE").decode('utf-8')
-FILEBROWSER_SAVE_FOLDER_LOOKIN = language.get(lang,"FILEBROWSER_SAVE_FOLDER_LOOKIN").decode('utf-8')
-FILEBROWSER_SAVE_FOLDER_FOLDERNAME = language.get(lang,"FILEBROWSER_SAVE_FOLDER_FOLDERNAME").decode('utf-8')
-FILEBROWSER_SAVE_FOLDER_FOLDERTYPE = language.get(lang,"FILEBROWSER_SAVE_FOLDER_FOLDERTYPE").decode('utf-8')
+SERIAL_CHAT_SETTINGS_TITLE= language.get(lang,"SERIAL_CHAT_SETTINGS_TITLE")
+CONNECT = language.get(lang,"CONNECT")
+CANCEL = language.get(lang,"CANCEL")
+FORMLAYOUT_SERIAL_TITLE= language.get(lang,"FORMLAYOUT_SERIAL_TITLE")
+FORMLAYOUT_PROFILE_TITLE= language.get(lang,"FORMLAYOUT_PROFILE_TITLE")
+FORMLAYOUT_CUSTOM_SERIAL_SETTINGS_TITLE= language.get(lang,"FORMLAYOUT_CUSTOM_SERIAL_SETTINGS_TITLE")
+FORMLAYOUT_INTERVAL_TIME_TITLE= language.get(lang,"FORMLAYOUT_INTERVAL_TIME_TITLE")
+FORMLAYOUT_SERIAL_SPEED_TITLE= language.get(lang,"FORMLAYOUT_SERIAL_SPEED_TITLE")
+FORMLAYOUT_DATA_BITS_TITLE= language.get(lang,"FORMLAYOUT_DATA_BITS_TITLE")
+FORMLAYOUT_STOP_BITS_TITLE= language.get(lang,"FORMLAYOUT_STOP_BITS_TITLE")
+FORMLAYOUT_PARITY_TITLE= language.get(lang,"FORMLAYOUT_PARITY_TITLE")
+FORMLAYOUT_FLOWCONTROL_TITLE= language.get(lang,"FORMLAYOUT_FLOWCONTROL_TITLE")
+FORMLAYOUT_ENABLE_ACP127_TITLE= language.get(lang,"FORMLAYOUT_ENABLE_ACP127_TITLE")
+FORMLAYOUT_ENABLE_ENCRYPTION_TITLE = language.get(lang,"FORMLAYOUT_ENABLE_ENCRYPTION_TITLE")
+FORMLAYOUT_ENCRYPTION_KEY_TITLE = language.get(lang,"FORMLAYOUT_ENCRYPTION_KEY_TITLE")
+FORMLAYOUT_NICKNAME_TITLE= language.get(lang,"FORMLAYOUT_NICKNAME_TITLE")
+FORMLAYOUT_SAVE_FOLDER_FILE_TITLE= language.get(lang,"FORMLAYOUT_SAVE_FOLDER_FILE_TITLE")
+ERROR_NO_DIR_MESSAGE = language.get(lang,"ERROR_NO_DIR_MESSAGE")
+ERROR_NO_DIR_TITLE =  language.get(lang,"ERROR_NO_DIR_TITLE")
+ERROR_NO_INT_MESSAGE = language.get(lang,"ERROR_NO_INT_MESSAGE")
+ERROR_NO_INT_TITLE = language.get(lang,"ERROR_NO_INT_TITLE")
+MSG_SERIAL_INT_STARTED= language.get(lang,"MSG_SERIAL_INT_STARTED").format
+ERROR_INTERFACE_TITLE = language.get(lang,"ERROR_INTERFACE_TITLE")
+FILEBROWSER_SAVE_FOLDER_TITLE = language.get(lang,"FILEBROWSER_SAVE_FOLDER_TITLE")
+FILEBROWSER_SAVE_FOLDER_LOOKIN = language.get(lang,"FILEBROWSER_SAVE_FOLDER_LOOKIN")
+FILEBROWSER_SAVE_FOLDER_FOLDERNAME = language.get(lang,"FILEBROWSER_SAVE_FOLDER_FOLDERNAME")
+FILEBROWSER_SAVE_FOLDER_FOLDERTYPE = language.get(lang,"FILEBROWSER_SAVE_FOLDER_FOLDERTYPE")
 
 
 class SettingsWindow(QDialog):
 
 
     def __init__(self,parent):
-        super(self.__class__,self).__init__(parent)
+        super().__init__(parent)
         self.parent = parent
-        self.lib = libserial.InitApp(self)
+        self.lib = InitApp(self)
         if self.parent.receive is not None:
             self.boolean_config_is_ok = True
         else:
             self.boolean_config_is_ok = False
 
-        self.config_parser = ConfigParser.ConfigParser()
+        self.config_parser = configparser.ConfigParser()
         self.config_parser.read("config/profiles/profiles.ini")
 
-        self.settings_parser = ConfigParser.ConfigParser()
+        self.settings_parser = configparser.ConfigParser()
         self.settings_parser.read('config/settings.ini')
 
         self.setWindowTitle(SERIAL_CHAT_SETTINGS_TITLE)
@@ -167,12 +169,10 @@ class SettingsWindow(QDialog):
         self.nickname_lineedit = QLineEdit()
         if self.settings_parser.has_option('default', 'nickname'):
             nickname = self.settings_parser.get('default', 'nickname')
-            if type(nickname) == str:
-                nickname = nickname.decode('utf-8')
             self.nickname_lineedit.setText(self.settings_parser.get('default', 'nickname'))
         else:
             if self.parent.nickname is None:
-                self.nickname_lineedit.setText("Guest_"+ MD5.new(str(datetime.datetime.now())).digest().encode('hex')[:5])
+                self.nickname_lineedit.setText("Guest_"+ MD5.new(str(datetime.datetime.now()).encode()).hexdigest()[:5])
             else:
                 self.nickname_lineedit.setText(self.parent.nickname)
 
@@ -181,8 +181,6 @@ class SettingsWindow(QDialog):
         self.save_folder_editline.editingFinished.connect(self.check_if_folder_exists)
         if self.settings_parser.has_option('default', 'default_save_folder'):
             folder = self.settings_parser.get('default', 'default_save_folder')
-            if type(folder) == str :
-                folder = folder.decode('utf-8')
             self.save_folder_editline.setText(folder)
             self.check_if_folder_exists()
 
@@ -336,7 +334,7 @@ class SettingsWindow(QDialog):
         if type(res) is not None and type(res) != OSError:
             self.parent.serial_port = res 
             self.parent.start_threads()
-            self.parent.status_bar_widget.showMessage(MSG_SERIAL_INT_STARTED%self.parent.serial_port.port)
+            self.parent.status_bar_widget.showMessage(MSG_SERIAL_INT_STARTED(self.parent.serial_port.port))
 
 
     def change_custom_settings_on_profile(self):

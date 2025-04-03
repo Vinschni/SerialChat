@@ -1,7 +1,7 @@
 import os
 
 import serial
-from PySide.QtCore import *
+from PySide6.QtCore import *
 
 __mod_comports = None
 __mod_glob = None

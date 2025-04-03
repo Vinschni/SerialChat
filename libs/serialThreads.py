@@ -1,10 +1,10 @@
-import ConfigParser
+import configparser
 import base64
 import json
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import QMessageBox
+from PySide6.QtCore import *
+from PySide6.QtWidgets import QMessageBox
 
 import libs.crypt as crypt
 
@@ -14,7 +14,7 @@ msg - message
 file - file
 not implemented yet ... resend - request to resend chunks that were damaged
 """
-settings_parser = ConfigParser.ConfigParser()
+settings_parser = configparser.ConfigParser()
 settings_parser.read('config/settings.ini')
 
 chunk_size = int(settings_parser.get("app_settings", "chunk_size"))
@@ -51,11 +51,9 @@ class Send(QThread):
 
     def run(self):
 
-        if type(self.text) == unicode:
-            self.text = self.text.encode('utf-8')
         full_size = len(self.text)
         self.total_data_signal.emit(full_size)
-        pieces = full_size/chunk_size
+        pieces = full_size//chunk_size
         remain = full_size%chunk_size
         size = chunk_size 
         t2s = ''
@@ -72,11 +70,11 @@ class Send(QThread):
                 t2s = self.Cipher.encrypt(key=self.parent.encryption_key,text=t2s)
 
         except Exception as e:
-            print(e)
+            print(str(e))
         t2s += "_E_s_F_"
         if self.parent.acp127:
             t2s = acp127_prefix + t2s + acp127_postfix
-        self.ser.write(t2s)
+        self.ser.write(t2s.encode('utf-8'))
         self.ser.flush()
         time.sleep(time_to_sleep_after_esf)
         texttmp = '' 
@@ -89,17 +87,17 @@ class Send(QThread):
                 sending_data = {}
                 texttmp = self.text[-(remain):]
                 self.counter += len(texttmp)
-                sending_data['data_remain'] = base64.b64encode(texttmp)
+                sending_data['data_remain'] = base64.b64encode(texttmp.encode('utf-8')).decode('utf-8')
                 try:
                     t2s += json.dumps(sending_data)
                     if self.parent.isEncryptionEnabled:
                         t2s = self.Cipher.encrypt(key=self.parent.encryption_key,text=t2s)
                 except Exception as e:
-                    print(e) 
+                    print(str(e))
                 t2s += "_E_0_F_"
                 if self.parent.acp127:
                     t2s = acp127_prefix + t2s + acp127_postfix
-                self.ser.write(t2s)
+                self.ser.write(t2s.encode('utf-8'))
                 self.ser.flush()
                 self.send_data_signal.emit(self.counter)
                 self.end_data_signal.emit()
@@ -113,7 +111,7 @@ class Send(QThread):
                     if self.parent.isEncryptionEnabled:
                         t2s = self.Cipher.encrypt(key=self.parent.encryption_key,text=t2s)
                 except Exception as e:
-                    print(e)
+                    print(str(e))
                 t2s += "_E_0_F_"
                 if self.parent.acp127:
                     t2s = acp127_prefix + t2s +acp127_postfix
@@ -127,13 +125,13 @@ class Send(QThread):
                 sending_data = {}
                 texttmp = self.text[size*i:size*(i+1)]
                 self.counter += len(texttmp)
-                sending_data['data_'+str(i)] =  base64.b64encode(texttmp)
+                sending_data['data_'+str(i)] =  base64.b64encode(texttmp.encode('utf-8')).decode('utf-8')
                 try:
                     t2s += json.dumps(sending_data)
                     if self.parent.isEncryptionEnabled:
                         t2s = self.Cipher.encrypt(key=self.parent.encryption_key,text=t2s)
                 except Exception as e:
-                    print(e)
+                    print(str(e))
                 t2s += "_E_0_P_"
                 if self.parent.acp127:
                     t2s = acp127_prefix + t2s + acp127_postfix
@@ -184,7 +182,7 @@ class Receive(QThread):
             try:
                 iswait = self.ser.inWaiting()
             except Exception as e:
-                print(e)
+                print(str(e))
 
                 self.interface_problem_signal.emit(str(e))
             
@@ -216,7 +214,7 @@ class Receive(QThread):
                         self.type = self.tdata['type']
                         self.tdata=''
                     except Exception as e:
-                        print(e)
+                        print(str(e))
                         self.tdata=''
 
                 if "_E_0_P_" in self.tdata:
@@ -232,7 +230,7 @@ class Receive(QThread):
                         value = base64.b64decode(value)
                     except Exception:
                         print("Problem... b64")
-                        print(value)
+                        print(str(value))
                     self.data[key]=str(value)
                     lenofdata = len(value)
                     self.catch_eop_signal.emit(lenofdata)
@@ -251,7 +249,7 @@ class Receive(QThread):
                         value = base64.b64decode(value)
                     except Exception:
                         print("Problem...b64")
-                        print(value)
+                        print(str(value))
                     self.data[key]=str(value)
                     lenofdata = len(value)
                     self.catch_eop_signal.emit(lenofdata)

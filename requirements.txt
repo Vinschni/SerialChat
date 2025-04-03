@@ -1,4 +1,3 @@
-PySide
-pyserial==2.7
-pycrypto
-playsound
+PySide6
+pyserial>=3.0
+pycryptodome
